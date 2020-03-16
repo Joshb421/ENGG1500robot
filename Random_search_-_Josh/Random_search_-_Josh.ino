@@ -7,6 +7,7 @@
 
 const float pulsesPerMM = 0.09794150344f;
 bool dir = 1;
+int randomNum;
 
 void setup() {
   // put your setup code here, to run once:
@@ -16,6 +17,7 @@ void setup() {
   randomSeed(analogRead(0));
   pinMode(ECHO, INPUT); //Initialise pin 12 as an input
   pinMode(TRIG, OUTPUT); //Initialise pin 7 as an output
+  
 }
 
 void loop() {
@@ -27,8 +29,9 @@ void loop() {
       move(dir, 120, 120, 5, 0);
     }
     else if (sonar_mm() < 70) {
+      randomNum = random(5,120);
       move(!dir, 120, 120, 100, 0);
-      move(dir, 0, 120, rand(5, 120), 0);
+      move(dir, 0, 120, randomNum, 0);
     }
     else if (sonar_mm() < 40 && sonar_mm() > 0) {
       move(!dir, 100, 100, 5, 0);
