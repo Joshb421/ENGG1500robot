@@ -2,12 +2,10 @@
 #define ECHO 12
 #define TRIG 13
 
-
-
-
 const float pulsesPerMM = 0.09794150344f;
 bool dir = 1;
 int randomNum;
+int distance;
 
 void setup() {
   // put your setup code here, to run once:
@@ -22,11 +20,11 @@ void setup() {
 
 void loop() {
 
-  while (digitalRead(7)) {
+  while (!digitalRead(7)) {
     // put your main code here, to run repeatedly:
     enc_clear();//set both encoder counts to 0
     if (sonar_mm() > 70) {
-      move(dir, 150, 120, 5, 0);
+      move(dir, 120, 120, 5, 0);
     }
     else if (sonar_mm() < 70) {
       randomNum = random(5,120);
@@ -73,8 +71,13 @@ unsigned int sonar_mm(void) {
   digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG, LOW);
-  duration = pulseIn(ECHO, HIGH);
-  return (unsigned int)(0.5 * duration * 1e-6 * speed_sound * 1e3);
+  duration = pulseIn(ECHO, HIGH, 30000);
+  distance =  (unsigned int)(0.5 * duration * 1e-6 * speed_sound * 1e3);
+  if(distance>1200){
+     move(!dir, 120, 120, 100, 0);
+  }
+  return distance;
+  
 }
 
 
