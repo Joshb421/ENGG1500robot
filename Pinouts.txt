@@ -1,0 +1,14 @@
+0	Nill
+1	Nill
+2	Encoder Left
+3	Encoder Right
+4	Nill
+5	Motor Enable B
+6	Motor Enable A
+7	IR Digital Out
+8	Motor In 1
+9	Motor In 2
+10	Motor In 3
+11	Motor In 4
+12	US Echo
+13	US Trigger
