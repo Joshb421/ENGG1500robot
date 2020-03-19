@@ -26,12 +26,12 @@ void loop() {
     // put your main code here, to run repeatedly:
     enc_clear();//set both encoder counts to 0
     if (sonar_mm() > 70) {
-      move(dir, 120, 120, 5, 0);
+      move(dir, 150, 120, 5, 0);
     }
     else if (sonar_mm() < 70) {
       randomNum = random(5,120);
-      move(!dir, 120, 120, 100, 0);
-      move(dir, 0, 120, randomNum, 0);
+      move(!dir, 120, 150, 100, 0);
+      move(random(0,1)*dir, 0, 170, randomNum, 0);
     }
     else if (sonar_mm() < 40 && sonar_mm() > 0) {
       move(!dir, 100, 100, 5, 0);
