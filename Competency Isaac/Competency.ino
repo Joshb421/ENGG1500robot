@@ -15,12 +15,12 @@
 #define  USEcho         12
 #define  USTrigger      13
 
-#define  RangeMax       150
-#define  RangeMin       50
+#define  RangeMax       150 // Range away from the wall where the robot will turn
+#define  RangeMin       50 // Too close and it will back up, too far and it will move forward
 
 int running = 1;
 
-enum State {
+enum State {  // Using a basic state machine, each state runs a specific function, the state changes base on input
   STOP,
   WALKFRONT,
   WALKBACK,
@@ -43,8 +43,7 @@ void setup() {
 
 void loop() {
   if (running) {
-    // put your main code here, to run repeatedly:
-    switch (currentState) {
+    switch (currentState) { //will run code within States.ino based on the current states
       case STOP:
       stopState();
       break;
@@ -64,11 +63,11 @@ void loop() {
   
     float d = measureDistance(10);
     if (d > RangeMin && d < RangeMax){
-      currentState = TURN;
+      currentState = TURN; //Turns when withon the specified range value
     }
   
     if (digitalRead(IRDigitalOut)) {
-      currentState = STOP;
+      currentState = STOP; //Will stop when senses black
     }
   }
 }

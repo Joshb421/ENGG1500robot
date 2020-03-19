@@ -1,4 +1,5 @@
 void stopState() {
+  moveLine(1, 127, 60, 50); //When detecting black, move forward slghtly and stop the program
   running = 0;
 }
 
@@ -19,6 +20,6 @@ void walkBackwardState() {
 }
 
 void turnState() {
-  moveArc(1, 100, 125, 100);
+  moveArc(1, 100, 75, 100);
   currentState = WALKFRONT;
 }
