@@ -1,37 +1,32 @@
-//Distances from the centroid of the robot to the centre of each sensor in mm 
-float x1 = -22.5;
-float x2 = -7.5;
-float x3 = 7.5;
-float x4 = 22.5;
+const int sensor[4] = {A3, A2, A1, A0};
+const float sensorX[4] = {22.5f, 7.5f, -7.5f, -20.0f};
 
-//Variables to store each data point in
-float w1;
-float w2;
-float w3;
-float w4;
 
-//Variables for storing the numerator and denominator of Equation 1
-float den = 0;   
-float num = 0;
+float weightedAverage() {
+  float num = 0;
+  float den = 0;
+  for (int i = 0; i < 4; i++) {
+    int value = analogRead(sensor[i]);
+    num += value * sensorX[i];
+    den += value;
+  }
+  return (num / den);
+}
 
 void setup() {
-  // Initialise pins for line sensors
-  pinMode(A0, INPUT);
-  pinMode(A1, INPUT);
-  pinMode(A2, INPUT);
-  pinMode(A3, INPUT);
-
-  Serial.begin(115200);
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  
+  for (int i = 0; i < 4; i++) {
+    Serial.println(sensor[i]);
+  }
+  Serial.println();
+  
 }
 
 void loop() {
-  //  TODO: Take sensor measurements using "w1 = analogRead(pin)" (store sensor data in w1, w2, w3, w4)
-  //  TODO: Calculate numerator of weighted average, store in num
-  //  TODO: Calculate denominator of weighted average, store in den
+  // put your main code here, to run repeatedly:
 
-  float lineDist = num/den;
+  Serial.println(weightedAverage()); 
 
-  Serial.print("Distance from line = ");
-  Serial.println(lineDist);
-  delay(50);  //  50ms delay
 }
