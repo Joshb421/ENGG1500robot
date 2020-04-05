@@ -5,7 +5,7 @@ volatile byte leftCounter;
 volatile bool rightFlag;
 volatile bool leftFlag;
 float pulsesPerMM = 0.09794150344;
-float error; 
+float error;
 
 
 void LeftISR() {
@@ -17,27 +17,35 @@ void LeftISR() {
 void RightISR() {
   rightCounter++;
   if (rightStepsToGo == rightCounter) {
-        rightFlag = 1;
+    rightFlag = 1;
   }
 }
 bool moveDone(bool left, bool right) {
-  leftCounter = !left*leftCounter; //Resets counter if move done is called
-  leftCounter = !right*leftCounter; //Resets counter if move done is called
-  if(left){
-    analogWrite(5,0);
+  leftCounter = !left * leftCounter; //Resets counter if move done is called
+  leftCounter = !right * leftCounter; //Resets counter if move done is called
+  if (left) {
+    analogWrite(5, 0);
   }
-  if (right){
-    analogWrite(5,0);
+  if (right) {
+    analogWrite(5, 0);
   }
-  return left*right;
+  return left * right;
 }
 
-void moveLine(bool dir, byte duty, int distanceInmm){
+void moveLine(bool dir, byte duty, int distanceInmm) {
   rightCounter = 0;
   leftCounter = 0;
-  rightCounter = distanceInmm*pulsesPerMM;
-  leftCounter = distanceInmm*pulsesPerMM;
-  error += distanceInmm-rightCounter/pulsesPerMM;
+  rightCounter = distanceInmm * pulsesPerMM;
+  leftCounter = distanceInmm * pulsesPerMM;
+  error += distanceInmm - rightCounter / pulsesPerMM;
+  analogWrite(5, duty); //Set Motor speeds
+  analogWrite(6, duty);
+  digitalWrite(8, dir); //Set polarity for the motors
+  digitalWrite(9, !dir); //Dir is inverted (!) to create a voltage differnetial
+  digitalWrite(10, dir);
+  digitalWrite(11, !dir);
+  while (!movedone) {
+  }
 }
 
 void setup() {
@@ -46,6 +54,10 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  moveLine(1, 150, 200);
+  delay(1000);
+  moveLine(0, 150, 200);
+  delay(1000);
+
 
 }
