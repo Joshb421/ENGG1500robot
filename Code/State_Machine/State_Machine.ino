@@ -4,6 +4,8 @@ enum State {  // Using a basic state machine, each state runs a specific functio
   WALKBACK,
   TURNRIGHT,
   TURNLEFT,
+  ARCLEFT,
+  ARCRIGHT
 };
 
 State state = STOP;
@@ -31,6 +33,12 @@ void loop() {
       case TURNLEFT:
         state_TURNLEFT();
         break;
+      case ARCRIGHT:
+        state_ARCRIGHT();
+        break;
+      case ARCLEFT:
+        state_ARCLEFT();
+        break;
     }
   }
 }
@@ -53,5 +61,13 @@ void state_TURNRIGHT() {
 }
 
 void state_TURNLEFT() {
+  
+}
+
+void state_ARCRIGHT() {
+  
+}
+
+void state_ARCLEFT() {
   
 }
