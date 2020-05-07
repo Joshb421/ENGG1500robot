@@ -9,7 +9,7 @@ A5	Nill
 1	Nill
 2	Encoder Left
 3	Encoder Right
-4	Nill
+4	Servo
 5	Motor Enable B
 6	Motor Enable A
 7	0
