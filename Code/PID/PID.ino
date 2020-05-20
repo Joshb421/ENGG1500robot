@@ -17,16 +17,11 @@ void setup(){
 }
 
 void loop(){
-  PIDLine(150,1,.1,0);
-}
-
-int mapDuty(float speed){
-  speed = map(speed,0,100,50,84);
-  int duty = -0.0017*pow(speed,3)+0.41*pow(speed,2)-28.266*speed+702;
-  if (!duty){
-    Serial.println("Warning: duty too low to make the motor move");
-  }
-  return duty;
+  PIDLine(75,1,1,0);
+  Serial.println(analogRead(A3));
+  Serial.println(analogRead(A2));
+  Serial.println(analogRead(A1));
+  Serial.println(analogRead(A0));
 }
 
 void PIDLine(int motorDefault, float Kp, float Ki, float Kd){
@@ -34,22 +29,27 @@ void PIDLine(int motorDefault, float Kp, float Ki, float Kd){
   float prop=0;
   float deriv=0;
   float integ=0;
-  float prev=0;
-  float accumErr=0;
+  static float prev=0;
+  static float accumErr=0;
   float correction=0;
   int integCap = 20;
   error = lineReading(400);
-  Serial.print("Error: ");
-  Serial.println(error);
-  if (accumErr<integCap){
-          accumErr += error;
+  //Serial.print("Error: ");
+  //Serial.println(error);
+  accumErr += error;
+  if (accumErr>integCap){
+      accumErr=integCap;
+  }
+  else if (accumErr<-integCap){
+      accumErr=-integCap;
   }
   prop = error*Kp;
   integ = accumErr*Ki;
   deriv = (error-prev)*Kd;
   correction = prop+integ+deriv;
-  Serial.print("Correction: ");
-  Serial.println(correction); 
+  //Serial.print("Correction: ");
+  //Serial.println(correction); 
   prev=error;
-  moveLineOL(1,mapDuty(motorDefault+correction),mapDuty(motorDefault-correction),20);
+  moveLineOL(1,(byte)motorDefault+correction,(byte)motorDefault-correction,20);
+
 }
