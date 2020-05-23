@@ -14,10 +14,11 @@ void PIDLine(int motorDefault, float Kp, float Ki, float Kd);
 
 void setup(){
   robotInit();
+  moveLineOL(1, 100, 100, 50);
 }
 
 void loop(){
-  PIDLine(75,10,1,8);
+  PIDLine(50,10,1,8);
 }
 
 void PIDLine(int motorDefault, float Kp, float Ki, float Kd){
