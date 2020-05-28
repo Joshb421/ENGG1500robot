@@ -1,34 +1,24 @@
 #include <Servo.h>
 #include "robot.h"
 Servo USServo;
-bool lineHistory[4][20];
-bool historyPtr = 0;
-byte timesLost = 0;
-volatile byte rightStepsToGo; //Variables used for semi-closed loop control of motors
-volatile byte leftStepsToGo;  //Volatitle indicates that they are used by the ISRs
-volatile byte rightCounter;
-volatile byte leftCounter;
-volatile bool rightFlag;
-volatile bool leftFlag;
-const float pulsesPerMM = 0.09794150344; //Calclated using encoderRes/pi*diamater
-const int sensor[4] = {A3, A2, A1, A0};
-const int sensorPins[3] = {A4, A5, 3};
-const int sensorOffsets[4] = {0, 0, 0, 0};
-const int sensorThresholds[4] = {6, 6, 6, 6};
-const float sensorX[4] = {22.5, 7.5, -7.5, -22.5};
-const int digitalSensors[5] = {A4, 7, 3, 2, A5};
-const int minVals[4] = {24, 25, 23, 25};
-const int maxVals[4] = {173, 364, 139, 414};
-float Distances [3] = {0, 0, 0};
 
+//Constants
+const int sensor[4] = {A3, A2, A1, A0}; //Pin allocations for the sensors
+const float sensorX[4] = {22.5, 7.5, -7.5, -22.5}; //Location of the sensors
+const int digitalSensors[5] = {A4, 7, 3, 2, A5}; //The 5 sensors used to track the line status
+const int minVals[4] = {24, 25, 23, 25}; //The minimum values for each sensor, when on white paper, see calibration.ino
+const int maxVals[4] = {173, 364, 139, 414}; //The maximum values for each sensor, when on a line, see calibration.ino
 
+float Distances [3] = {0, 0, 0}; //Used to track the measuremnts from the US sensor
+bool lineHistory[5][20]; //Array used to track the history of the line following, to backtrack if need be
+int historyPtr = 0;
 
 //This function simply calls other functions needed for the init process
 void robotInit() {
   Serial.begin(57600);
   motorInit();//Motors
   sonarInit();//Sonar sensor
-  lineInit();
+  lineInit();//Line sensor
 }
 
 //Configures appropriate pins and paramaters for the motors
@@ -40,8 +30,6 @@ void motorInit() {
   pinMode(MOT2, OUTPUT); //set IN2 as an output
   pinMode(MOT3, OUTPUT); //set IN3 as an output
   pinMode(MOT4, OUTPUT); //set IN4 as an output
-  //attachInterrupt(digitalPinToInterrupt(2), LeftISR, FALLING);//Left encoder
-  //attachInterrupt(digitalPinToInterrupt(3), RightISR, FALLING);//Right encoder
   Serial.println("Motors are ready");
 }
 //Sets up ultrasonic sensor
@@ -59,48 +47,6 @@ void lineInit() {
 }
 
 //ISRs for the motor encoders, designed to be as light as possible
-void LeftISR() {
-  leftCounter++;
-  if (leftStepsToGo == leftCounter) {
-    leftFlag = 1;
-  }
-}
-void RightISR() {
-  rightCounter++;
-  if (rightStepsToGo == rightCounter) {
-    rightFlag = 1;
-  }
-}
-//This is used to monitor flags to see if the motors are done their movment, and if so, turn them off
-bool moveDone(bool left, bool right) {
-  leftCounter = !left * leftCounter; //Resets counter if move done is called
-  leftCounter = !right * leftCounter; //Resets counter if move done is called
-  if (left) {
-    analogWrite(ENA, 0);
-  }
-  if (right) {
-    analogWrite(ENB, 0);
-  }
-  return left * right; //Only returns one if both flags are one - Can be used to wait for something to be done
-}
-
-//Function to move in a straight-ish line, through a semi closed loop methodology
-//Forward if dir = 1
-//
-void moveLineCL(bool dir, byte duty, int distanceInmm) {
-  rightCounter = 0;
-  leftCounter = 0;
-  rightCounter = distanceInmm * pulsesPerMM;
-  leftCounter = distanceInmm * pulsesPerMM;
-  analogWrite(ENA, duty); //Set Motor speeds
-  analogWrite(ENB, duty);
-  digitalWrite(MOT1, dir); //Set polarity for the motors
-  digitalWrite(MOT2, !dir); //Dir is inverted (!) to create a voltage differnetial
-  digitalWrite(MOT3, dir);
-  digitalWrite(MOT4, !dir);
-  while (!moveDone) {
-  }
-}
 
 void moveLineOL(bool dir, byte dutyL, byte dutyR, int pause) {
   analogWrite(ENA, dutyL); //Set Motor speeds
@@ -115,38 +61,6 @@ void moveLineOL(bool dir, byte dutyL, byte dutyR, int pause) {
 }
 
 //Function to move the robot in a turn (with only one wheel moving)
-void turnCL(bool dir, byte duty, int distanceInmm) {
-  digitalWrite(MOT1, 1); //Set polarity for the motors
-  digitalWrite(MOT2, 0); //Dir is inverted (!) to create a voltage differnetial
-  digitalWrite(MOT3, 1);
-  digitalWrite(MOT4, 0);
-  rightCounter = 0;
-  leftCounter = 0;
-  if (dir == 1) {
-    rightCounter = distanceInmm * pulsesPerMM;
-    analogWrite(ENA, duty);
-  }
-  else {
-    rightCounter = distanceInmm * pulsesPerMM;
-    analogWrite(ENB, duty);
-  }
-  while (!moveDone) {
-  }
-}
-
-void turnOL(bool dir, byte duty, int pause) {
-  digitalWrite(MOT1, 1); //Set polarity for the motors
-  digitalWrite(MOT2, 0); //Dir is inverted (!) to create a voltage differnetial
-  digitalWrite(MOT3, 1);
-  digitalWrite(MOT4, 0);
-  if (dir == 1) {
-    analogWrite(ENA, duty);
-  }
-  else {
-    analogWrite(ENB, duty);
-  }
-  delay(pause);
-}
 
 //Function which uses the Sonar sensor to measure a distance in mm
 //TODO: Implement the ability to scan at different angles
@@ -197,16 +111,19 @@ float lineReading(int thresholdVal) {
     Serial.print(lineLostCount);
     Serial.println(" Times");
   }
-  if (lineLostCount > 10) {
+  else{
+    lineLostCount; //Resets the counter if a line is detected
+  }
+  if (lineLostCount > 5) { //Changes strategies if no line is detected 5 times in a row
     Serial.println("Line has been lost too many times, changing strategies...");
     lineLostCount = 0;
     lineLost();
   }
-  //  value = 3.1359*(num/den) - 8.956+2;
   return (num / den);
 }
 
 void lineLost() {
+  //Checks the distances from any obstacles left, right and centre
   Distances[0] = measureDistance(1, 15, 3);
   Serial.println(Distances[0]);
   Distances[1] = measureDistance(1, 90, 3);
