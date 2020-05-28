@@ -48,13 +48,13 @@ void lineInit() {
 
 //ISRs for the motor encoders, designed to be as light as possible
 
-void moveLineOL(bool dir, byte dutyL, byte dutyR, int pause) {
+void moveLineOL(bool dirL, bool dirR, byte dutyL, byte dutyR, int pause) {
   analogWrite(ENA, dutyL); //Set Motor speeds
   analogWrite(ENB, dutyR);
-  digitalWrite(MOT1, dir); //Set polarity for the motors
-  digitalWrite(MOT2, !dir); //Dir is inverted (!) to create a voltage differnetial
-  digitalWrite(MOT3, dir);
-  digitalWrite(MOT4, !dir);
+  digitalWrite(MOT1, dirL); //Set polarity for the motors
+  digitalWrite(MOT2, !dirL); //Dir is inverted (!) to create a voltage differnetial
+  digitalWrite(MOT3, dirR);
+  digitalWrite(MOT4, !dirR);
   delay(pause);
   analogWrite(ENA, 0); //Set Motor speeds
   analogWrite(ENB, 0);
@@ -89,22 +89,20 @@ float measureDistance(int samples, byte angle, int timeOut) {
 
 //Function to use the 4 front sensors for line detection
 //
-float lineReading(int thresholdVal) {
+float lineReading() {
   float num = 0;
   float den = 0;
   float value = 0;
   byte sensorSum = 0;
   static byte lineLostCount = 0;
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) { //Read all the analog sensors and normalise the values
     value = map(analogRead(sensor[i]), minVals[i], maxVals[i], 5, 100);
-    //Serial.print(value);
     num += value * sensorX[i];
     den += value;
   }
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 5; i++) {//Reads the digital lines connected to the sensors and counts
     sensorSum += digitalRead(digitalSensors[i]);
   }
-  Serial.println(sensorSum);
   if (sensorSum < 1) {
     lineLostCount++;
     Serial.print("Line has been lost ");
@@ -154,6 +152,6 @@ void followWall(float kp) {
     Distances[2] = measureDistance(1, 165, 3);
     Distances[0] = measureDistance(1, 15, 3);
     error = (Distances[0] - Distances[2])*kp;
-    moveLineOL(1,150+error,150-error,200);
+    moveLineOL(1,1,150+error,150-error,200);
   }
 }

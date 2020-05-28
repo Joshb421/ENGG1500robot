@@ -12,19 +12,14 @@ void lineInit();
 void followWall(float kp);
 
 //Motor control functions
-void LeftISR();
-void RightISR();
-bool moveDone(bool left, bool right);
 
 //Motor interface functions
-void moveLineCL(bool dir, byte duty, int distanceInmm);
-void turnCL(bool dir, byte duty, int distanceInmm);
-void moveLineOL(bool dir, byte dutyL, byte dutyR, int pause);
-void turnOL(bool dir, byte duty, int pause);
+
+void moveLineOL(bool dirL, bool dirR, byte dutyL, byte dutyR, int pause);
 
 //Sensor functions
 float measureDistance(int samples, byte angle, int timeOut);
-float lineReading(int thresholdVal);
+float lineReading();
 
 void lineLost();
 
