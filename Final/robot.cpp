@@ -103,14 +103,14 @@ float lineReading() {
   for (int i = 0; i < 5; i++) {//Reads the digital lines connected to the sensors and counts
     sensorSum += digitalRead(digitalSensors[i]);
   }
-  if (sensorSum < 1) {
+   if (sensorSum < 1) {
     lineLostCount++;
     Serial.print("Line has been lost ");
     Serial.print(lineLostCount);
     Serial.println(" Times");
   }
   else{
-    lineLostCount; //Resets the counter if a line is detected
+    lineLostCount = 0; //Resets the counter if a line is detected
   }
   if (lineLostCount > 5) { //Changes strategies if no line is detected 5 times in a row
     Serial.println("Line has been lost too many times, changing strategies...");
