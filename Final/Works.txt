@@ -1,0 +1,38 @@
+#include <pins.h>
+#include <robot.h>
+
+void PIDLine(int motorDefault, float Kp, float Ki, float Kd);
+
+float correction = 0;
+
+void setup(){
+  robotInit();
+  //moveLineOL(1, 100, 100, 50);
+}
+
+void loop(){
+  //Serial.println(lineReading());
+  //moveLine1(1,200,-30,20);
+
+
+  
+  PIDLine(100,50,0,1);
+  
+  delay(40);
+}
+
+void PIDLine(int motorDefault, float Kp, float Ki, float Kd){
+  static float lastError = 0, accum = 0;
+  float error = lineReading();
+  float errorRate = error - lastError;
+  if (abs(error + accum) < 20) {
+      accum += error;
+  }
+  lastError = error;
+  correction = Kp * error + Ki * accum + Kd * errorRate;
+
+
+  Serial.println(correction);
+  moveLine1(1,(int)motorDefault,(int)correction,15);
+
+}

@@ -1,0 +1,103 @@
+#include "robot.h"
+
+const float pulsesPerMM = 0.09794150344; //Calclated using encoderRes/pi*diamater
+
+const int sensor[4] = {A0, A1, A2, A3};
+const int sensorScale[4] = { 1, 1, 1, 1 };
+const float sensorX[4] = {21.5f, 7.5f, -8.0f, -22.5f};
+
+//This function simply calls other functions needed for the init process
+void robotInit() {
+  Serial.begin(57600);
+  motorInit();//Motors
+  sonarInit();//Sonar sensor
+  lineInit();
+}
+
+//Configures appropriate pins and paramaters for the motors
+void motorInit() {
+  bool dir = 1; //Sets Default direction to forward
+  pinMode(ENA, OUTPUT); //set ENA as an output
+  pinMode(ENB, OUTPUT); //set ENB as an output
+  pinMode(MOT1, OUTPUT); //set IN1 as an output
+  pinMode(MOT2, OUTPUT); //set IN2 as an output
+  pinMode(MOT3, OUTPUT); //set IN3 as an output
+  pinMode(MOT4, OUTPUT); //set IN4 as an output
+  //Serial.println("Motors are ready");
+}
+//Sets up ultrasonic sensor
+void sonarInit() {
+  pinMode(TRIG , OUTPUT);
+  //Serial.println("Ultrasonic sensor is ready");
+}
+
+void lineInit() {
+  for (int i = 0; i < 4; i++) {
+    pinMode(sensor[i], INPUT);
+  }
+  //Serial.println("Line sensors ready");
+}
+
+void moveLine1(bool dir, int motorDefault, int correction, int pause) {
+    int a = motorDefault - correction;
+    int b = motorDefault + correction;
+
+    if (motorDefault - correction > 255) {
+        a = 255;
+    }
+    else if (motorDefault - correction < 0) {
+        a = 0;
+    }
+
+    if (motorDefault + correction > 255) {
+        b = 255;
+    }
+    else if (motorDefault + correction < 0) {
+        b = 0;
+    }
+
+    analogWrite(ENA, motorDefault - correction); //Set Motor speeds
+    analogWrite(ENB, motorDefault + correction);
+
+    digitalWrite(MOT1, dir); //Set polarity for the motors
+    digitalWrite(MOT2, !dir); //Dir is inverted (!) to create a voltage differnetial
+    digitalWrite(MOT3, dir);
+    digitalWrite(MOT4, !dir);
+    
+    delay(pause);
+    analogWrite(ENA, 0); //Set Motor speeds
+    analogWrite(ENB, 0);
+}
+
+//Function which uses the Sonar sensor to measure a distance in mm
+float measureDistance(int samples) {
+  const float speed_sound = 340.29;
+  long duration = 0;
+  float sum;
+  sum = 0;
+  for (int n = 0; n < samples; n++) { //Takes a number of samples to reduce hysterisis
+    digitalWrite(TRIG , HIGH);
+    delayMicroseconds(10);
+    digitalWrite(TRIG , LOW);
+    duration = pulseIn(ECHO , HIGH);
+    sum += (0.5 * duration * 1e-6 * speed_sound * 1e3); //Creates a running average
+  }
+  return sum / samples; //Returns the average of some number of samples
+}
+
+//Function to use the 4 front sensors for line detection
+//
+float lineReading() {
+  float num = 0;
+  float den = 0;
+  float value = 0;
+  for (int i = 0; i < 4; i++){
+    value = analogRead(sensor[i]) / sensorScale[i];
+    //Serial.print(value);
+    //Serial.print(' ');
+    num += value * sensorX[i];
+    den += value;
+  }
+
+  return num/den;
+}

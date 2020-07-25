@@ -2,6 +2,8 @@
 #include "robot.h"
 #include <Arduino.h>
 
+const int minVals[4]={28,25,26,25};
+const int maxVals[4]={1020,976,947,972};
 
 void PIDLine(int motorDefault, float Kp, float Ki, float Kd);
 
